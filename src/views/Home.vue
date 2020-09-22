@@ -10,7 +10,7 @@
       :currencies="currencies"
       :rates="rates"
       :list="list"
-      :timestamp="today"
+      :timestamp="timestamp"
       :amount="amount"
       :loading="loading"
       @onChange="changeAmount"
@@ -20,7 +20,6 @@
 
 <script>
 import request from 'request';
-import dayjs from 'dayjs';
 
 import Table from '@/components/Table.vue';
 
@@ -56,16 +55,26 @@ export default {
   data() {
     return {
       loading: true,
-      today: dayjs().format('YYYY-MM-DD'),
+      timestamp: '',
       currencies: [],
       rates: [],
       list: defaultList,
       amount: 1,
+      inverse: false,
     };
+  },
+  computed: {
+    from() {
+      return 'CAD';
+    },
+    to() {
+      return this.list.map((val) => val.currency).join(',');
+    },
   },
   mounted() {
     this.getCurrencies();
     this.getHistoricRates();
+    this.getInverse();
   },
   methods: {
     getCurrencies() {
@@ -84,13 +93,31 @@ export default {
       this.loading = true;
 
       const options = {
-        url: `https://xecdapi.xe.com/v1/historic_rate.json/?from=CAD&date=${this.today}&to=${this.list.map((val) => val.currency).join(',')}&amount=${this.amount}`,
+        url: `https://xecdapi.xe.com/v1/convert_from.json/?from=${this.from}&to=${this.to}&amount=${this.amount}`,
         auth,
       };
 
       request(options, (error, response, body) => {
         if (!error && response.statusCode === 200) {
+          this.timestamp = JSON.parse(body).timestamp;
           this.rates = JSON.parse(body).to;
+        }
+      });
+
+      this.loading = false;
+    },
+    getInverse() {
+      this.loading = true;
+
+      const options = {
+        url: `https://xecdapi.xe.com/v1/convert_to.json/?to=${this.from}&to=${this.from}&amount=${this.amount}`,
+        auth,
+      };
+
+      request(options, (error, response, body) => { // eslint-disable-line
+        if (!error && response.statusCode === 200) {
+          // console.log(JSON.parse(body));
+          // this.rates = JSON.parse(body).to;
         }
       });
 

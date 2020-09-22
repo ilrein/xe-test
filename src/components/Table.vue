@@ -1,11 +1,5 @@
 <template>
   <div>
-    <!-- <div
-      v-for="currency in currencies"
-      :key="currency.iso"
-    >
-      {{ currency.iso }}
-    </div> -->
     <sui-card>
       <sui-card-content>
         <sui-card-header>
@@ -17,6 +11,12 @@
         <sui-input
           :value="amount"
           @change="onChange"
+        />
+      </sui-card-content>
+      <sui-card-content>
+        <sui-checkbox
+          label="Inverse"
+          toggle
         />
       </sui-card-content>
     </sui-card>
@@ -54,7 +54,11 @@
             <h4 is="sui-header" image>
               <sui-flag :name="rate.countryName" />
               <sui-header-content>
-                {{ rate.currency.toUpperCase() }}
+                {{
+                  rate.currency
+                    ? rate.currency.toUpperCase()
+                    : null
+                }}
               </sui-header-content>
             </h4>
           </sui-table-cell>
@@ -66,14 +70,19 @@
     </sui-table>
 
     <h3>
-      Currency timestamp: {{ timestamp }}
+      Currency timestamp: {{ dayjs(timestamp).format('YYYY-MM-DD - hh:mm a') }}
     </h3>
   </div>
 </template>
 
 <script>
+import dayjs from 'dayjs';
+
 export default {
   name: 'Table',
+  created() {
+    this.dayjs = dayjs;
+  },
   props: {
     timestamp: {
       type: String,
